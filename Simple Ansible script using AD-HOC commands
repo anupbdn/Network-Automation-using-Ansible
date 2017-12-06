@@ -1,0 +1,26 @@
+#We will be using one line AD-HOC commands to pull required reports or logs from multiple networking devices
+#I am using raw module here
+
+
+# Used raw module to get details of a single switch S1 ,username anup
+
+ansible S1 -m raw -a "show version" -u anup -k
+ansible S1 -m raw -a "show ip int brief" -u anup -k
+
+#In this case i have created 2 inventories - switches and routers (collection of ip addresses) multiple devices 
+
+ansible switches -i ./hosts -m raw -a "show version" -u anup -k
+ansible routers -i ./hosts -m raw -a "show version" -u anup -k
+
+# In this case i have used grep command to fetch only the required details :
+
+ansible routers -i ./hosts -m raw -a "show version" -u anup -k | grep UNREACHABLE
+ansible routers -i ./hosts -m raw -a "show version" -u anup -k | grep SUCCESS
+
+ansible all -i ./hosts -m raw -a "show version" -u anup -k | grep SUCCESS
+
+ansible all -i ./hosts -m raw -a "show version" -u anup -k | grep 'SUCCESS\|Version'
+
+#In this case i have exported the output
+
+ansible all -i ./hosts -m raw -a "show version" -u anup -k | grep 'SUCCESS\|Version' > version.txt
