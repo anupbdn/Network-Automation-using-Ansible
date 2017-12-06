@@ -1,0 +1,29 @@
+# I have used ios_config module enter config terminal in our cisco devices and enter commands . I am creating vlans 25,21,22,23 in multiple devices
+
+
+---
+
+- name: mainstore
+  hosts: switches
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: anup
+      password: cisco
+      transport: cli
+
+  tasks:
+    - name: vlancreation
+      ios_config:
+        provider: "{{ cli }}"
+        lines:
+          
+          - "vlan 25,21,22,23"
+          
+
+
+      register: print_output
+
+    -  debug: var=print_output
