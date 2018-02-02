@@ -1,0 +1,66 @@
+#In this script my aim is to find out first whether the vlan is present
+#If Vlan is not present then we need to configure
+#We will be using templates to configure . I have used ntc ansible module , ntc templates for the configuration
+#Below is my ansible config
+
+#ansible.cfg
+
+#[defaults]
+#hostfile = ./hosts
+#host_key_checking = false
+#timeout = 5
+#library    = /root/ntc/projects
+#inventory = /root/hosts
+
+---
+- name: Obtain current Cisco VLANs
+  hosts: all
+  connection: local
+  gather_facts: no
+  vars:
+   ansible_ssh_host: 192.168.122.70
+   ansible_ssh_user: anup
+   ansible_ssh_pass: cisco
+   platform: cisco_ios
+
+  tasks:
+    - name: show vlan
+      ntc_show_command:
+        connection: netmiko_ssh
+        host: "{{ ansible_ssh_host }}"
+        username: "{{ ansible_ssh_user }}"
+        password: "{{ ansible_ssh_pass }}"
+        platform: "{{ platform }}"
+        command: 'show vlan'
+        use_templates: True
+        template_dir: /root/ntc/projects/ntc-ansible/ntc-templates/templates/
+      register: result
+
+    - name: Save vlan_output
+      set_fact:
+         vlan_out: "{{ result.response }}"
+
+    - name: vlan_999 initial value
+      set_fact:
+         vlan_999: false
+
+    - name: set vlan_999
+      set_fact:
+         vlan_999: true
+      with_items: "{{vlan_out}}"
+      when: item.vlan_id == "999"
+
+    - name: Create vlan 999
+      ntc_config_command:
+         connection: ssh
+         host: "{{ ansible_ssh_host }}"
+         username: "{{ ansible_ssh_user }}"
+         password: "{{ ansible_ssh_pass }}"
+         platform: "{{ platform }}"
+         commands:
+           - 'vlan 999'
+           - 'name test'
+      when: vlan_999 == false
+      register: result
+
+    - debug: var=result
